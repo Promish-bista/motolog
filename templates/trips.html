@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Trips — MotoLog{% endblock %}
+
+{% block content %}
+<div class="page-header" style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+  <div>
+    <h1>Trip <span class="accent">Log</span></h1>
+    <p>{{ trips|length }} route{{ 's' if trips|length != 1 else '' }} recorded</p>
+  </div>
+  <a href="{{ url_for('new_trip') }}" class="btn btn-primary">+ New Trip</a>
+</div>
+
+{% if trips %}
+<div class="card" style="padding:0; overflow:hidden;">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Trip</th>
+        <th>Route</th>
+        <th>Date</th>
+        <th>km</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in trips %}
+      <tr>
+        <td><strong>{{ t.title }}</strong></td>
+        <td style="color:var(--text-secondary);">{{ t.origin }} → {{ t.destination }}</td>
+        <td style="color:var(--text-secondary); white-space:nowrap;">{{ t.start_date.strftime('%d %b %Y') }}</td>
+        <td style="color:var(--text-secondary);">{{ t.distance_km|int if t.distance_km else '—' }}</td>
+        <td><span class="badge badge-{{ t.status }}">{{ t.status }}</span></td>
+        <td style="white-space:nowrap;">
+          <a href="{{ url_for('edit_trip', trip_id=t.id) }}" class="btn btn-ghost btn-sm">Edit</a>
+          <form method="POST" action="{{ url_for('delete_trip', trip_id=t.id) }}" style="display:inline"
+                onsubmit="return confirm('Delete this trip?')">
+            <button type="submit" class="btn btn-danger-ghost btn-sm">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state">
+  <p>No trips logged yet.</p>
+  <a href="{{ url_for('new_trip') }}" class="btn btn-primary" style="margin-top:16px;">Log your first ride</a>
+</div>
+{% endif %}
+{% endblock %}

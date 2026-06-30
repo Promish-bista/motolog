@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}{{ 'New Trip' if mode == 'new' else 'Edit Trip' }} — MotoLog{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>{{ 'New <span class="accent">Trip</span>' | safe if mode == 'new' else 'Edit <span class="accent">Trip</span>' | safe }}</h1>
+  <p><a href="{{ url_for('trips') }}">← Back to Trips</a></p>
+</div>
+
+<div class="card" style="max-width:640px;">
+  <form method="POST">
+    <div class="form-grid">
+
+      <div class="form-group full">
+        <label for="title">Trip Name</label>
+        <input type="text" id="title" name="title" required placeholder="e.g. Kathmandu to Pokhara Weekend Run"
+               value="{{ trip.title if trip else '' }}">
+      </div>
+
+      <div class="form-group">
+        <label for="origin">Origin</label>
+        <input type="text" id="origin" name="origin" required placeholder="e.g. Kathmandu"
+               value="{{ trip.origin if trip else '' }}">
+      </div>
+
+      <div class="form-group">
+        <label for="destination">Destination</label>
+        <input type="text" id="destination" name="destination" required placeholder="e.g. Pokhara"
+               value="{{ trip.destination if trip else '' }}">
+      </div>
+
+      <div class="form-group">
+        <label for="start_date">Start Date</label>
+        <input type="date" id="start_date" name="start_date" required
+               value="{{ trip.start_date.strftime('%Y-%m-%d') if trip else '' }}">
+      </div>
+
+      <div class="form-group">
+        <label for="end_date">End Date <span style="color:var(--text-muted);font-weight:400;">(optional)</span></label>
+        <input type="date" id="end_date" name="end_date"
+               value="{{ trip.end_date.strftime('%Y-%m-%d') if trip and trip.end_date else '' }}">
+      </div>
+
+      <div class="form-group">
+        <label for="distance_km">Planned Distance (km)</label>
+        <input type="number" id="distance_km" name="distance_km" step="any" placeholder="e.g. 210"
+               value="{{ trip.distance_km if trip else '' }}">
+      </div>
+
+      {% if mode == 'edit' %}
+      <div class="form-group">
+        <label for="status">Status</label>
+        <select id="status" name="status">
+          <option value="planned"   {% if trip.status == 'planned'   %}selected{% endif %}>Planned</option>
+          <option value="active"    {% if trip.status == 'active'    %}selected{% endif %}>Active</option>
+          <option value="completed" {% if trip.status == 'completed' %}selected{% endif %}>Completed</option>
+        </select>
+      </div>
+      {% endif %}
+
+      <div class="form-group full">
+        <label for="notes">Notes / Waypoints</label>
+        <textarea id="notes" name="notes" rows="4"
+                  placeholder="Route notes, stopover towns, things to see…">{{ trip.notes if trip else '' }}</textarea>
+      </div>
+
+    </div>
+
+    <div class="modal-actions" style="margin-top:24px;">
+      <a href="{{ url_for('trips') }}" class="btn btn-ghost">Cancel</a>
+      <button type="submit" class="btn btn-primary">
+        {{ 'Log Trip' if mode == 'new' else 'Save Changes' }}
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}
