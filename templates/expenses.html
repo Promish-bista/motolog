@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Expenses — MotoLog{% endblock %}
+
+{% block content %}
+{% set total = expenses | sum(attribute='amount') %}
+
+<div class="page-header" style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+  <div>
+    <h1>Expense <span class="accent">Tracker</span></h1>
+    <p>Total: <strong style="color:var(--orange);">NPR {{ total|int }}</strong> across {{ expenses|length }} entr{{ 'ies' if expenses|length != 1 else 'y' }}</p>
+  </div>
+  <button class="btn btn-primary" onclick="openModal('expenseModal')">+ Add Expense</button>
+</div>
+
+{% if expenses %}
+<div class="card" style="padding:0; overflow:hidden;">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Category</th>
+        <th>Description</th>
+        <th>Trip</th>
+        <th style="text-align:right;">Amount</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for e in expenses %}
+      <tr>
+        <td style="color:var(--text-secondary); white-space:nowrap;">{{ e.expense_date.strftime('%d %b %Y') }}</td>
+        <td><span class="badge badge-{{ e.category }}">{{ e.category }}</span></td>
+        <td style="color:var(--text-secondary);">{{ e.description or '—' }}</td>
+        <td style="color:var(--text-muted); font-size:0.82rem;">
+          {{ e.trip.title if e.trip else '—' }}
+        </td>
+        <td style="text-align:right; font-family:var(--font-display); font-size:1.05rem; color:var(--text-primary);">
+          {{ e.amount|int }} <span style="color:var(--text-muted); font-size:0.75rem;">{{ e.currency }}</span>
+        </td>
+        <td>
+          <form method="POST" action="{{ url_for('delete_expense', expense_id=e.id) }}" style="display:inline"
+                onsubmit="return confirm('Delete this expense?')">
+            <button type="submit" class="btn btn-danger-ghost btn-sm">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state">
+  <p>No expenses recorded yet.</p>
+  <button class="btn btn-primary" onclick="openModal('expenseModal')" style="margin-top:16px;">Add first expense</button>
+</div>
+{% endif %}
+
+<div class="modal-backdrop" id="expenseModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Record Expense</h2>
+      <button class="modal-close" onclick="closeModal('expenseModal')">×</button>
+    </div>
+    <form method="POST" action="{{ url_for('new_expense') }}">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="category">Category</label>
+          <select id="category" name="category" required>
+            <option value="fuel">Fuel</option>
+            <option value="food">Food</option>
+            <option value="accommodation">Accommodation</option>
+            <option value="gear">Gear</option>
+            <option value="misc">Misc</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="expense_date">Date</label>
+          <input type="date" id="expense_date" name="expense_date" required>
+        </div>
+        <div class="form-group">
+          <label for="amount">Amount</label>
+          <input type="number" id="amount" name="amount" required step="any" placeholder="e.g. 2500">
+        </div>
+        <div class="form-group">
+          <label for="currency">Currency</label>
+          <select id="currency" name="currency">
+            <option value="NPR">NPR</option>
+            <option value="USD">USD</option>
+            <option value="INR">INR</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label for="trip_id">Link to Trip <span style="color:var(--text-muted);font-weight:400;">optional</span></label>
+          <select id="trip_id" name="trip_id">
+            <option value="">— No trip —</option>
+            {% for t in trips %}
+            <option value="{{ t.id }}">{{ t.title }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group full">
+          <label for="description">Description</label>
+          <input type="text" id="description" name="description" placeholder="e.g. Petrol at Pokhara pump">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('expenseModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Expense</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Service Log — MotoLog{% endblock %}
+
+{% block content %}
+<div class="page-header" style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+  <div>
+    <h1>Service <span class="accent">Log</span></h1>
+    <p>Track every maintenance event for your bike</p>
+  </div>
+  <button class="btn btn-primary" onclick="openModal('maintModal')">+ Add Service</button>
+</div>
+
+{% if logs %}
+<div class="card" style="padding:0; overflow:hidden;">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Service</th>
+        <th>Date</th>
+        <th>Odometer</th>
+        <th>Next Due</th>
+        <th>Cost (NPR)</th>
+        <th>Workshop</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log in logs %}
+      <tr>
+        <td><strong>{{ log.service_type }}</strong></td>
+        <td style="color:var(--text-secondary);">{{ log.service_date.strftime('%d %b %Y') }}</td>
+        <td style="color:var(--text-secondary);">{{ log.odometer_km|int }} km</td>
+        <td style="color:{% if log.next_due_km %}var(--orange){% else %}var(--text-muted){% endif %};">
+          {{ log.next_due_km|int ~ ' km' if log.next_due_km else '—' }}
+        </td>
+        <td style="color:var(--text-secondary);">{{ log.cost|int if log.cost else '—' }}</td>
+        <td style="color:var(--text-secondary);">{{ log.workshop or '—' }}</td>
+        <td>
+          <form method="POST" action="{{ url_for('delete_maintenance', log_id=log.id) }}" style="display:inline"
+                onsubmit="return confirm('Delete this log?')">
+            <button type="submit" class="btn btn-danger-ghost btn-sm">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state">
+  <p>No service records yet.</p>
+  <button class="btn btn-primary" onclick="openModal('maintModal')" style="margin-top:16px;">Add first log</button>
+</div>
+{% endif %}
+
+<div class="modal-backdrop" id="maintModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Add Service Log</h2>
+      <button class="modal-close" onclick="closeModal('maintModal')">×</button>
+    </div>
+    <form method="POST" action="{{ url_for('new_maintenance') }}">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label for="service_type">Service Type</label>
+          <input type="text" id="service_type" name="service_type" required placeholder="e.g. Oil Change, Tyre Rotation">
+        </div>
+        <div class="form-group">
+          <label for="service_date">Service Date</label>
+          <input type="date" id="service_date" name="service_date" required>
+        </div>
+        <div class="form-group">
+          <label for="odometer_km">Odometer (km)</label>
+          <input type="number" id="odometer_km" name="odometer_km" required step="any" placeholder="e.g. 12500">
+        </div>
+        <div class="form-group">
+          <label for="next_due_km">Next Due (km) <span style="color:var(--text-muted);font-weight:400;">optional</span></label>
+          <input type="number" id="next_due_km" name="next_due_km" step="any" placeholder="e.g. 15000">
+        </div>
+        <div class="form-group">
+          <label for="cost">Cost (NPR)</label>
+          <input type="number" id="cost" name="cost" step="any" placeholder="0">
+        </div>
+        <div class="form-group full">
+          <label for="workshop">Workshop / Mechanic</label>
+          <input type="text" id="workshop" name="workshop" placeholder="e.g. Durbar Marg Service Centre">
+        </div>
+        <div class="form-group full">
+          <label for="notes">Notes</label>
+          <textarea id="notes" name="notes" rows="2" placeholder="Parts replaced, observations…"></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('maintModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Log</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
