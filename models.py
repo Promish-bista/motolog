@@ -11,10 +11,11 @@ class User(db.Model, UserMixin):
     email         = db.Column(db.String(150), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
     bike_model    = db.Column(db.String(120), nullable=True)
+    role          = db.Column(db.String(20),  default='rider', nullable=False)
     created_at    = db.Column(db.DateTime,    default=datetime.utcnow)
-    trips        = db.relationship('Trip',        backref='rider', lazy=True, cascade='all, delete-orphan')
-    maintenances = db.relationship('Maintenance', backref='rider', lazy=True, cascade='all, delete-orphan')
-    expenses     = db.relationship('Expense',     backref='rider', lazy=True, cascade='all, delete-orphan')
+
+    def is_admin(self):
+        return self.role == 'admin'
 
 class Trip(db.Model):
     __tablename__ = 'trips'
