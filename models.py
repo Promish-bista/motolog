@@ -17,6 +17,10 @@ class User(db.Model, UserMixin):
     def is_admin(self):
         return self.role == 'admin'
 
+    trips        = db.relationship('Trip',        backref='rider', lazy='joined', cascade='all, delete-orphan')
+    maintenances = db.relationship('Maintenance', backref='rider', lazy='joined', cascade='all, delete-orphan')
+    expenses     = db.relationship('Expense',     backref='rider', lazy='joined', cascade='all, delete-orphan')
+
 class Trip(db.Model):
     __tablename__ = 'trips'
     id          = db.Column(db.Integer,     primary_key=True)

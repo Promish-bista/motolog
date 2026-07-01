@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}Admin Panel — MotoLog{% endblock %}
+
+{% block content %}
+<div class="page-header" style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+  <div>
+    <h1>Admin <span class="accent">Control Panel</span></h1>
+    <p>Logged in as <strong style="color:var(--orange);">{{ current_user.username }}</strong> · Viewing all riders' data</p>
+  </div>
+  <a href="{{ url_for('logout') }}" class="btn btn-ghost">Logout</a>
+</div>
+
+<!-- Stats -->
+<div class="dash-grid" style="margin-bottom:28px;">
+  <div class="stat-card">
+    <div class="stat-label">Total Riders</div>
+    <div class="stat-value">{{ users|length }}</div>
+    <div class="stat-sub">registered accounts</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Total Trips</div>
+    <div class="stat-value">{{ trips|length }}</div>
+    <div class="stat-sub">across all riders</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Service Logs</div>
+    <div class="stat-value">{{ maintenance|length }}</div>
+    <div class="stat-sub">maintenance records</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Total Spend</div>
+    <div class="stat-value">{{ total_spend|int }}</div>
+    <div class="stat-sub">NPR platform-wide</div>
+  </div>
+</div>
+
+<!-- All Users -->
+<div class="card" style="margin-bottom:20px; padding:0; overflow:hidden;">
+  <div style="padding:20px 24px 0;">
+    <div class="card-title">All Users</div>
+  </div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Bike</th>
+        <th>Joined</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+      <tr>
+        <td><strong>{{ u.username }}</strong></td>
+        <td style="color:var(--text-secondary);">{{ u.email }}</td>
+        <td>
+          <span class="badge {% if u.role == 'admin' %}badge-active{% else %}badge-planned{% endif %}">
+            {{ u.role }}
+          </span>
+        </td>
+        <td style="color:var(--text-secondary);">{{ u.bike_model or '—' }}</td>
+        <td style="color:var(--text-muted);">{{ u.created_at.strftime('%d %b %Y') }}</td>
+        <td>
+          {% if u.id != current_user.id %}
+          <form method="POST" action="{{ url_for('admin_delete_user', user_id=u.id) }}"
+                onsubmit="return confirm('Delete user {{ u.username }} and all their data?')">
+            <button type="submit" class="btn btn-danger-ghost btn-sm">Delete</button>
+          </form>
+          {% else %}
+          <span style="color:var(--text-muted); font-size:0.8rem;">You</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- All Trips -->
+<div class="card" style="margin-bottom:20px; padding:0; overflow:hidden;">
+  <div style="padding:20px 24px 0;">
+    <div class="card-title">All Trips</div>
+  </div>
+  {% if trips %}
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Rider</th>
+        <th>Trip</th>
+        <th>Route</th>
+        <th>Date</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in trips %}
+      <tr>
+        <td style="color:var(--orange);">{{ t.rider.username }}</td>
+        <td><strong>{{ t.title }}</strong></td>
+        <td style="color:var(--text-secondary);">{{ t.origin }} → {{ t.destination }}</td>
+        <td style="color:var(--text-secondary);">{{ t.start_date.strftime('%d %b %Y') }}</td>
+        <td><span class="badge badge-{{ t.status }}">{{ t.status }}</span></td>
+        <td>
+          <form method="POST" action="{{ url_for('admin_delete_trip', trip_id=t.id) }}"
+                onsubmit="return confirm('Delete this trip?')" style="display:inline;">
+            <button type="submit" class="btn btn-danger-ghost btn-sm">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state"><p>No trips logged yet.</p></div>
+  {% endif %}
+</div>
+
+<!-- All Expenses -->
+<div class="card" style="padding:0; overflow:hidden;">
+  <div style="padding:20px 24px 0;">
+    <div class="card-title">All Expenses</div>
+  </div>
+  {% if expenses %}
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Rider</th>
+        <th>Date</th>
+        <th>Category</th>
+        <th>Description</th>
+        <th style="text-align:right;">Amount</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for e in expenses %}
+      <tr>
+        <td style="color:var(--orange);">{{ e.rider.username }}</td>
+        <td style="color:var(--text-secondary);">{{ e.expense_date.strftime('%d %b %Y') }}</td>
+        <td><span class="badge badge-{{ e.category }}">{{ e.category }}</span></td>
+        <td style="color:var(--text-secondary);">{{ e.description or '—' }}</td>
+        <td style="text-align:right; font-family:var(--font-display); font-size:1.05rem;">
+          {{ e.amount|int }} <span style="color:var(--text-muted); font-size:0.75rem;">{{ e.currency }}</span>
+        </td>
+        <td>
+          <form method="POST" action="{{ url_for('admin_delete_expense', expense_id=e.id) }}"
+                onsubmit="return confirm('Delete this expense?')" style="display:inline;">
+            <button type="submit" class="btn btn-danger-ghost btn-sm">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state"><p>No expenses recorded yet.</p></div>
+  {% endif %}
+</div>
+{% endblock %}

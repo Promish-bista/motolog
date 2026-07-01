@@ -4,6 +4,11 @@ from flask_bcrypt import Bcrypt
 from models import db, User, Trip, Maintenance, Expense
 from datetime import datetime
 from dotenv import load_dotenv
+from controllers.auth_controller import AuthController
+from controllers.trip_controller import TripController
+from controllers.maintenance_controller import MaintenanceController
+from controllers.expense_controller import ExpenseController
+from utils.decorators import role_required
 import os
 
 load_dotenv()
@@ -27,32 +32,35 @@ def load_user(user_id):
 with app.app_context():
     db.create_all()
 
+# ─── Auth Routes ───────────────────────────
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        username   = request.form['username']
-        email      = request.form['email']
-        password   = request.form['password']
-        bike_model = request.form.get('bike_model', '')
-        if User.query.filter_by(email=email).first():
-            flash('Email already registered.', 'danger')
+        user, error = AuthController.register_user(
+            username=request.form['username'],
+            email=request.form['email'],
+            password=request.form['password'],
+            bike_model=request.form.get('bike_model', ''),
+            admin_code=request.form.get('admin_code', '')
+        )
+        if error:
+            flash(error, 'danger')
             return redirect(url_for('register'))
-        hashed_pw = bcrypt.generate_password_hash(password).decode('utf-8')
-        user = User(username=username, email=email, password_hash=hashed_pw, bike_model=bike_model)
-        db.session.add(user)
-        db.session.commit()
-        flash('Account created! Log in now.', 'success')
+        flash(f'Account created as {user.role}! Log in now.', 'success')
         return redirect(url_for('login'))
     return render_template('login.html', mode='register')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email    = request.form['email']
-        password = request.form['password']
-        user     = User.query.filter_by(email=email).first()
-        if user and bcrypt.check_password_hash(user.password_hash, password):
+        user = AuthController.login_user_check(
+            email=request.form['email'],
+            password=request.form['password']
+        )
+        if user:
             login_user(user)
+            if user.is_admin():
+                return redirect(url_for('admin_dashboard'))
             return redirect(url_for('dashboard'))
         flash('Invalid email or password.', 'danger')
     return render_template('login.html', mode='login')
@@ -63,37 +71,72 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
+# ─── Rider Dashboard ───────────────────────
 @app.route('/')
 @login_required
 def dashboard():
-    trips       = Trip.query.filter_by(user_id=current_user.id).order_by(Trip.start_date.desc()).limit(5).all()
-    maintenance = Maintenance.query.filter_by(user_id=current_user.id).order_by(Maintenance.service_date.desc()).limit(5).all()
-    expenses    = Expense.query.filter_by(user_id=current_user.id).order_by(Expense.expense_date.desc()).limit(5).all()
-    total_spend = db.session.query(db.func.sum(Expense.amount)).filter_by(user_id=current_user.id).scalar() or 0
-    return render_template('index.html', trips=trips, maintenance=maintenance, expenses=expenses, total_spend=total_spend)
+    if current_user.is_admin():
+        return redirect(url_for('admin_dashboard'))
+    trips       = TripController.get_user_trips(current_user.id)[:5]
+    maintenance = MaintenanceController.get_user_logs(current_user.id)[:5]
+    expenses    = ExpenseController.get_user_expenses(current_user.id)[:5]
+    total_spend = ExpenseController.get_total_spend(current_user.id)
+    return render_template('index.html', trips=trips, maintenance=maintenance,
+                           expenses=expenses, total_spend=total_spend)
 
+# ─── Admin Routes ──────────────────────────
+@app.route('/admin')
+@login_required
+@role_required('admin')
+def admin_dashboard():
+    users       = AuthController.get_all_users()
+    trips       = TripController.get_all_trips()
+    maintenance = MaintenanceController.get_all_logs()
+    expenses    = ExpenseController.get_all_expenses()
+    total_spend = db.session.query(db.func.sum(Expense.amount)).scalar() or 0
+    return render_template('admin_dashboard.html', users=users, trips=trips,
+                           maintenance=maintenance, expenses=expenses,
+                           total_spend=total_spend)
+
+@app.route('/admin/delete_user/<int:user_id>', methods=['POST'])
+@login_required
+@role_required('admin')
+def admin_delete_user(user_id):
+    if user_id == current_user.id:
+        flash('You cannot delete your own account.', 'danger')
+        return redirect(url_for('admin_dashboard'))
+    AuthController.delete_user(user_id)
+    flash('User deleted.', 'info')
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/delete_trip/<int:trip_id>', methods=['POST'])
+@login_required
+@role_required('admin')
+def admin_delete_trip(trip_id):
+    TripController.delete_trip(trip_id)
+    flash('Trip deleted.', 'info')
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/delete_expense/<int:expense_id>', methods=['POST'])
+@login_required
+@role_required('admin')
+def admin_delete_expense(expense_id):
+    ExpenseController.delete_expense(expense_id)
+    flash('Expense deleted.', 'info')
+    return redirect(url_for('admin_dashboard'))
+
+# ─── Trip Routes ───────────────────────────
 @app.route('/trips')
 @login_required
 def trips():
-    all_trips = Trip.query.filter_by(user_id=current_user.id).order_by(Trip.start_date.desc()).all()
+    all_trips = TripController.get_user_trips(current_user.id)
     return render_template('trips.html', trips=all_trips)
 
 @app.route('/trips/new', methods=['GET', 'POST'])
 @login_required
 def new_trip():
     if request.method == 'POST':
-        trip = Trip(
-            user_id=current_user.id,
-            title=request.form['title'],
-            origin=request.form['origin'],
-            destination=request.form['destination'],
-            start_date=datetime.strptime(request.form['start_date'], '%Y-%m-%d').date(),
-            end_date=datetime.strptime(request.form['end_date'], '%Y-%m-%d').date() if request.form.get('end_date') else None,
-            distance_km=float(request.form['distance_km']) if request.form.get('distance_km') else None,
-            notes=request.form.get('notes', '')
-        )
-        db.session.add(trip)
-        db.session.commit()
+        TripController.create_trip(current_user.id, request.form)
         flash('Trip logged!', 'success')
         return redirect(url_for('trips'))
     return render_template('trip_detail.html', trip=None, mode='new')
@@ -101,18 +144,12 @@ def new_trip():
 @app.route('/trips/<int:trip_id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_trip(trip_id):
-    trip = Trip.query.get_or_404(trip_id)
+    trip = TripController.get_trip_by_id(trip_id)
     if trip.user_id != current_user.id:
         flash('Access denied.', 'danger')
         return redirect(url_for('trips'))
     if request.method == 'POST':
-        trip.title       = request.form['title']
-        trip.origin      = request.form['origin']
-        trip.destination = request.form['destination']
-        trip.start_date  = datetime.strptime(request.form['start_date'], '%Y-%m-%d').date()
-        trip.status      = request.form.get('status', trip.status)
-        trip.notes       = request.form.get('notes', '')
-        db.session.commit()
+        TripController.update_trip(trip_id, request.form)
         flash('Trip updated.', 'success')
         return redirect(url_for('trips'))
     return render_template('trip_detail.html', trip=trip, mode='edit')
@@ -120,77 +157,52 @@ def edit_trip(trip_id):
 @app.route('/trips/<int:trip_id>/delete', methods=['POST'])
 @login_required
 def delete_trip(trip_id):
-    trip = Trip.query.get_or_404(trip_id)
+    trip = TripController.get_trip_by_id(trip_id)
     if trip.user_id == current_user.id:
-        db.session.delete(trip)
-        db.session.commit()
+        TripController.delete_trip(trip_id)
         flash('Trip deleted.', 'info')
     return redirect(url_for('trips'))
 
+# ─── Maintenance Routes ────────────────────
 @app.route('/maintenance')
 @login_required
 def maintenance():
-    logs = Maintenance.query.filter_by(user_id=current_user.id).order_by(Maintenance.service_date.desc()).all()
+    logs = MaintenanceController.get_user_logs(current_user.id)
     return render_template('maintenance.html', logs=logs)
 
 @app.route('/maintenance/new', methods=['POST'])
 @login_required
 def new_maintenance():
-    log = Maintenance(
-        user_id=current_user.id,
-        service_type=request.form['service_type'],
-        odometer_km=float(request.form['odometer_km']),
-        service_date=datetime.strptime(request.form['service_date'], '%Y-%m-%d').date(),
-        next_due_km=float(request.form['next_due_km']) if request.form.get('next_due_km') else None,
-        cost=float(request.form.get('cost', 0)),
-        workshop=request.form.get('workshop', ''),
-        notes=request.form.get('notes', '')
-    )
-    db.session.add(log)
-    db.session.commit()
+    MaintenanceController.create_log(current_user.id, request.form)
     flash('Service log saved.', 'success')
     return redirect(url_for('maintenance'))
 
 @app.route('/maintenance/<int:log_id>/delete', methods=['POST'])
 @login_required
 def delete_maintenance(log_id):
-    log = Maintenance.query.get_or_404(log_id)
-    if log.user_id == current_user.id:
-        db.session.delete(log)
-        db.session.commit()
+    log = MaintenanceController.get_user_logs(current_user.id)
+    MaintenanceController.delete_log(log_id)
     return redirect(url_for('maintenance'))
 
+# ─── Expense Routes ────────────────────────
 @app.route('/expenses')
 @login_required
 def expenses():
-    all_expenses = Expense.query.filter_by(user_id=current_user.id).order_by(Expense.expense_date.desc()).all()
-    trips        = Trip.query.filter_by(user_id=current_user.id).all()
+    all_expenses = ExpenseController.get_user_expenses(current_user.id)
+    trips        = TripController.get_user_trips(current_user.id)
     return render_template('expenses.html', expenses=all_expenses, trips=trips)
 
 @app.route('/expenses/new', methods=['POST'])
 @login_required
 def new_expense():
-    expense = Expense(
-        user_id=current_user.id,
-        trip_id=int(request.form['trip_id']) if request.form.get('trip_id') else None,
-        category=request.form['category'],
-        amount=float(request.form['amount']),
-        currency=request.form.get('currency', 'NPR'),
-        description=request.form.get('description', ''),
-        expense_date=datetime.strptime(request.form['expense_date'], '%Y-%m-%d').date()
-    )
-    db.session.add(expense)
-    db.session.commit()
+    ExpenseController.create_expense(current_user.id, request.form)
     flash('Expense recorded.', 'success')
     return redirect(url_for('expenses'))
 
 @app.route('/expenses/<int:expense_id>/delete', methods=['POST'])
 @login_required
 def delete_expense(expense_id):
-    expense = Expense.query.get_or_404(expense_id)
-    if expense.user_id == current_user.id:
-        db.session.delete(expense)
-        db.session.commit()
+    ExpenseController.delete_expense(expense_id)
     return redirect(url_for('expenses'))
 
 if __name__ == '__main__':

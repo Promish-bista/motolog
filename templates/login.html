@@ -28,6 +28,7 @@
     </div>
 
     <form method="POST">
+
       {% if mode == 'register' %}
       <div class="form-group" style="margin-bottom:14px;">
         <label for="username">Username</label>
@@ -46,15 +47,20 @@
       </div>
 
       {% if mode == 'register' %}
-      <div class="form-group" style="margin-bottom:20px;">
+      <div class="form-group" style="margin-bottom:14px;">
         <label for="bike_model">Bike Model <span style="color:var(--text-muted);font-weight:400;">(optional)</span></label>
         <input type="text" id="bike_model" name="bike_model" placeholder="e.g. Royal Enfield Himalayan 450">
+      </div>
+      <div class="form-group" style="margin-bottom:20px;">
+        <label for="admin_code">Admin Code <span style="color:var(--text-muted);font-weight:400;">(leave blank if rider)</span></label>
+        <input type="password" id="admin_code" name="admin_code" placeholder="Only for admin accounts">
       </div>
       {% endif %}
 
       <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">
         {{ 'Create Account' if mode == 'register' else 'Login' }}
       </button>
+
     </form>
   </div>
 
