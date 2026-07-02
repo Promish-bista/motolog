@@ -12,6 +12,10 @@
 
 {% if trips %}
 <div class="card" style="padding:0; overflow:hidden;">
+  <div class="card" style="margin-bottom:16px; padding:14px 20px;">
+  <input type="text" id="tripSearch" placeholder="Search trips by name or destination..."
+         style="width:100%;" onkeyup="filterTrips()">
+</div>
   <table class="data-table">
     <thead>
       <tr>
@@ -25,7 +29,7 @@
     </thead>
     <tbody>
       {% for t in trips %}
-      <tr>
+      <tr class="trip-row">
         <td><strong>{{ t.title }}</strong></td>
         <td style="color:var(--text-secondary);">{{ t.origin }} → {{ t.destination }}</td>
         <td style="color:var(--text-secondary); white-space:nowrap;">{{ t.start_date.strftime('%d %b %Y') }}</td>
@@ -49,4 +53,14 @@
   <a href="{{ url_for('new_trip') }}" class="btn btn-primary" style="margin-top:16px;">Log your first ride</a>
 </div>
 {% endif %}
+<script>
+function filterTrips() {
+  const query = document.getElementById('tripSearch').value.toLowerCase();
+  const rows  = document.querySelectorAll('.trip-row');
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    row.style.display = text.includes(query) ? '' : 'none';
+  });
+}
+</script>
 {% endblock %}
