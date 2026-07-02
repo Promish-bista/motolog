@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, request, flash, jsonify
+from flask import Flask, render_template, redirect, url_for, request, flash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_bcrypt import Bcrypt
 from models import db, User, Trip, Maintenance, Expense
@@ -83,6 +83,18 @@ def dashboard():
     total_spend = ExpenseController.get_total_spend(current_user.id)
     return render_template('index.html', trips=trips, maintenance=maintenance,
                            expenses=expenses, total_spend=total_spend)
+
+# ─── Profile Route ─────────────────────────
+@app.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    if request.method == 'POST':
+        current_user.username   = request.form.get('username', current_user.username)
+        current_user.bike_model = request.form.get('bike_model', current_user.bike_model)
+        db.session.commit()
+        flash('Profile updated successfully.', 'success')
+        return redirect(url_for('profile'))
+    return render_template('profile.html')
 
 # ─── Admin Routes ──────────────────────────
 @app.route('/admin')
@@ -180,7 +192,6 @@ def new_maintenance():
 @app.route('/maintenance/<int:log_id>/delete', methods=['POST'])
 @login_required
 def delete_maintenance(log_id):
-    log = MaintenanceController.get_user_logs(current_user.id)
     MaintenanceController.delete_log(log_id)
     return redirect(url_for('maintenance'))
 
@@ -205,9 +216,10 @@ def delete_expense(expense_id):
     ExpenseController.delete_expense(expense_id)
     return redirect(url_for('expenses'))
 
-if __name__ == '__main__':
-    app.run(debug=True)
-
+# ─── Error Handlers ────────────────────────
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html'), 404
+
+if __name__ == '__main__':
+    app.run(debug=True)

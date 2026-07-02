@@ -9,7 +9,10 @@
 <body>
 
   {% if current_user.is_authenticated %}
-  <div class="navbar-links" id="navLinks">
+  <nav class="navbar">
+    <a href="{{ url_for('dashboard') if not current_user.is_admin() else url_for('admin_dashboard') }}" class="navbar-brand">Moto<span>Log</span></a>
+
+    <div class="navbar-links" id="navLinks">
       {% if current_user.is_admin() %}
         <a href="{{ url_for('admin_dashboard') }}" {% if request.endpoint == 'admin_dashboard' %}class="active"{% endif %}>Admin Panel</a>
       {% else %}
@@ -17,9 +20,11 @@
         <a href="{{ url_for('trips') }}"       {% if request.endpoint == 'trips'       %}class="active"{% endif %}>Trips</a>
         <a href="{{ url_for('maintenance') }}" {% if request.endpoint == 'maintenance' %}class="active"{% endif %}>Service</a>
         <a href="{{ url_for('expenses') }}"    {% if request.endpoint == 'expenses'    %}class="active"{% endif %}>Expenses</a>
+        <a href="{{ url_for('profile') }}"     {% if request.endpoint == 'profile'     %}class="active"{% endif %}>Profile</a>
       {% endif %}
       <a href="{{ url_for('logout') }}" style="color:var(--text-muted)">Logout</a>
     </div>
+
     <div class="navbar-hamburger" id="navBurger">
       <span></span><span></span><span></span>
     </div>
