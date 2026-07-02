@@ -32,7 +32,7 @@ def load_user(user_id):
 with app.app_context():
     db.create_all()
 
-# ─── Auth Routes ───────────────────────────
+# Auth Routes
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -71,7 +71,7 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
-# ─── Rider Dashboard ───────────────────────
+# Rider Dashboard 
 @app.route('/')
 @login_required
 def dashboard():
@@ -84,19 +84,33 @@ def dashboard():
     return render_template('index.html', trips=trips, maintenance=maintenance,
                            expenses=expenses, total_spend=total_spend)
 
-# ─── Profile Route ─────────────────────────
+# Profile Route 
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
     if request.method == 'POST':
         current_user.username   = request.form.get('username', current_user.username)
         current_user.bike_model = request.form.get('bike_model', current_user.bike_model)
+
+        new_password     = request.form.get('new_password', '')
+        confirm_password = request.form.get('confirm_password', '')
+
+        if new_password:
+            if new_password != confirm_password:
+                flash('Passwords do not match.', 'danger')
+                return redirect(url_for('profile'))
+            if len(new_password) < 6:
+                flash('Password must be at least 6 characters.', 'danger')
+                return redirect(url_for('profile'))
+            current_user.password_hash = bcrypt.generate_password_hash(new_password).decode('utf-8')
+            flash('Password updated successfully.', 'success')
+
         db.session.commit()
         flash('Profile updated successfully.', 'success')
         return redirect(url_for('profile'))
     return render_template('profile.html')
 
-# ─── Admin Routes ──────────────────────────
+# Admin Routes
 @app.route('/admin')
 @login_required
 @role_required('admin')
@@ -137,7 +151,7 @@ def admin_delete_expense(expense_id):
     flash('Expense deleted.', 'info')
     return redirect(url_for('admin_dashboard'))
 
-# ─── Trip Routes ───────────────────────────
+# Trip Routes 
 @app.route('/trips')
 @login_required
 def trips():
@@ -178,7 +192,7 @@ def delete_trip(trip_id):
         flash('Trip deleted.', 'info')
     return redirect(url_for('trips'))
 
-# ─── Maintenance Routes ────────────────────
+# Maintenance Routes 
 @app.route('/maintenance')
 @login_required
 def maintenance():
@@ -198,7 +212,7 @@ def delete_maintenance(log_id):
     MaintenanceController.delete_log(log_id)
     return redirect(url_for('maintenance'))
 
-# ─── Expense Routes ────────────────────────
+# Expense Routes 
 @app.route('/expenses')
 @login_required
 def expenses():
@@ -219,7 +233,7 @@ def delete_expense(expense_id):
     ExpenseController.delete_expense(expense_id)
     return redirect(url_for('expenses'))
 
-# ─── Error Handlers ────────────────────────
+# Error Handlers 
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html'), 404
