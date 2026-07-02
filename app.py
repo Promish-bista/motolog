@@ -148,7 +148,10 @@ def trips():
 @login_required
 def new_trip():
     if request.method == 'POST':
-        TripController.create_trip(current_user.id, request.form)
+        trip, error = TripController.create_trip(current_user.id, request.form)
+        if error:
+            flash(error, 'danger')
+            return redirect(url_for('new_trip'))
         flash('Trip logged!', 'success')
         return redirect(url_for('trips'))
     return render_template('trip_detail.html', trip=None, mode='new')
