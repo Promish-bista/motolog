@@ -135,4 +135,26 @@
   <div id="budgetAlert" class="alert" style="display:none; margin-top:12px;"></div>
 </div>
 
+
+<!-- ── Expense Breakdown ── -->
+{% if expenses %}
+<div class="card" style="margin-top:24px;">
+  <div class="card-title">Expense Breakdown</div>
+  <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:12px;">
+    {% set categories = ['fuel', 'food', 'accommodation', 'gear', 'misc'] %}
+    {% for cat in categories %}
+      {% set cat_total = expenses | selectattr('category', 'equalto', cat) | sum(attribute='amount') %}
+      {% if cat_total > 0 %}
+      <div style="background:var(--bg-elevated); border-radius:var(--radius); padding:12px; text-align:center;">
+        <div style="font-size:0.72rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); margin-bottom:4px;">{{ cat }}</div>
+        <div style="font-family:var(--font-display); font-size:1.3rem; font-weight:700; color:var(--orange);">{{ cat_total|int }}</div>
+        <div style="font-size:0.75rem; color:var(--text-muted);">NPR</div>
+      </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+
 {% endblock %}
