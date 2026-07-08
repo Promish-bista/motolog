@@ -120,7 +120,45 @@
   {% endif %}
 </div>
 
-<!-- All Expenses -->
+
+ <!-- All Maintenance and All Expenses -->
+  
+<div class="card" style="margin-bottom:20px; padding:0; overflow:hidden;">
+  <div style="padding:20px 24px 12px;">
+    <div class="card-title">All Service Logs</div>
+  </div>
+  {% if maintenance %}
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Rider</th>
+        <th>Service</th>
+        <th>Date</th>
+        <th>Odometer</th>
+        <th>Next Due</th>
+        <th>Cost (NPR)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log in maintenance %}
+      <tr>
+        <td style="color:var(--orange);">{{ log.rider.username }}</td>
+        <td><strong>{{ log.service_type }}</strong></td>
+        <td style="color:var(--text-secondary);">{{ log.service_date.strftime('%d %b %Y') }}</td>
+        <td style="color:var(--text-secondary);">{{ log.odometer_km|int }} km</td>
+        <td style="color:{% if log.next_due_km %}var(--orange){% else %}var(--text-muted){% endif %};">
+          {{ log.next_due_km|int ~ ' km' if log.next_due_km else '—' }}
+        </td>
+        <td style="color:var(--text-secondary);">{{ log.cost|int if log.cost else '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state"><p>No service logs yet.</p></div>
+  {% endif %}
+</div>
+
 <div class="card" style="padding:0; overflow:hidden;">
   <div style="padding:20px 24px 0;">
     <div class="card-title">All Expenses</div>
