@@ -11,11 +11,11 @@
 </div>
 
 {% if trips %}
-<div class="card" style="padding:0; overflow:hidden;">
-  <div class="card" style="margin-bottom:16px; padding:14px 20px;">
+<div class="card" style="margin-bottom:16px; padding:14px 20px;">
   <input type="text" id="tripSearch" placeholder="Search trips by name or destination..."
          style="width:100%;" onkeyup="filterTrips()">
 </div>
+<div class="card" style="padding:0; overflow:hidden;">
   <table class="data-table">
     <thead>
       <tr>
@@ -34,7 +34,21 @@
         <td style="color:var(--text-secondary);">{{ t.origin }} → {{ t.destination }}</td>
         <td style="color:var(--text-secondary); white-space:nowrap;">{{ t.start_date.strftime('%d %b %Y') }}</td>
         <td style="color:var(--text-secondary);">{{ t.distance_km|int if t.distance_km else '—' }}</td>
-        <td><span class="badge badge-{{ t.status }}">{{ t.status }}</span></td>
+        <td>
+          <form method="POST" action="{{ url_for('edit_trip', trip_id=t.id) }}" style="display:inline;">
+            <input type="hidden" name="title" value="{{ t.title }}">
+            <input type="hidden" name="origin" value="{{ t.origin }}">
+            <input type="hidden" name="destination" value="{{ t.destination }}">
+            <input type="hidden" name="start_date" value="{{ t.start_date.strftime('%Y-%m-%d') }}">
+            <input type="hidden" name="notes" value="{{ t.notes or '' }}">
+            <select name="status" onchange="this.form.submit()"
+                    style="background:var(--bg-elevated); border:1px solid var(--border); border-radius:var(--radius); color:var(--text-primary); padding:4px 8px; font-size:0.82rem; cursor:pointer;">
+              <option value="planned"   {% if t.status == 'planned'   %}selected{% endif %}>Planned</option>
+              <option value="active"    {% if t.status == 'active'    %}selected{% endif %}>Active</option>
+              <option value="completed" {% if t.status == 'completed' %}selected{% endif %}>Completed</option>
+            </select>
+          </form>
+        </td>
         <td style="white-space:nowrap;">
           <a href="{{ url_for('edit_trip', trip_id=t.id) }}" class="btn btn-ghost btn-sm">Edit</a>
           <form method="POST" action="{{ url_for('delete_trip', trip_id=t.id) }}" style="display:inline"
@@ -53,6 +67,7 @@
   <a href="{{ url_for('new_trip') }}" class="btn btn-primary" style="margin-top:16px;">Log your first ride</a>
 </div>
 {% endif %}
+
 <script>
 function filterTrips() {
   const query = document.getElementById('tripSearch').value.toLowerCase();
