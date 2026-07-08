@@ -13,6 +13,10 @@
 </div>
 
 {% if expenses %}
+<div class="card" style="margin-bottom:16px; padding:14px 20px;">
+  <input type="text" id="expenseSearch" placeholder="Search expenses by category or description..."
+         style="width:100%;" onkeyup="filterExpenses()">
+</div>
 <div class="card" style="padding:0; overflow:hidden;">
   <table class="data-table">
     <thead>
@@ -27,7 +31,7 @@
     </thead>
     <tbody>
       {% for e in expenses %}
-      <tr>
+      <tr class="expense-row">
         <td style="color:var(--text-secondary); white-space:nowrap;">{{ e.expense_date.strftime('%d %b %Y') }}</td>
         <td><span class="badge badge-{{ e.category }}">{{ e.category }}</span></td>
         <td style="color:var(--text-secondary);">{{ e.description or '—' }}</td>
@@ -110,4 +114,15 @@
     </form>
   </div>
 </div>
+
+<script>
+function filterExpenses() {
+  const query = document.getElementById('expenseSearch').value.toLowerCase();
+  const rows  = document.querySelectorAll('.expense-row');
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    row.style.display = text.includes(query) ? '' : 'none';
+  });
+}
+</script>
 {% endblock %}
