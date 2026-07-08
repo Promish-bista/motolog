@@ -18,6 +18,11 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{os.getenv('DB_USERNAME')}:{os.getenv('DB_PASSWORD')}@localhost/{os.getenv('DB_NAME')}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# ─── Security Configuration ────────────────
+app.config['SESSION_COOKIE_HTTPONLY']  = True   # prevent JS access to session cookie
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # CSRF protection
+app.config['PERMANENT_SESSION_LIFETIME'] = 1800  # session expires after 30 minutes
+
 db.init_app(app)
 bcrypt = Bcrypt(app)
 
