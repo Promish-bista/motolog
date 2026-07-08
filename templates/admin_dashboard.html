@@ -36,8 +36,10 @@
 
 <!-- All Users -->
 <div class="card" style="margin-bottom:20px; padding:0; overflow:hidden;">
-  <div style="padding:20px 24px 0;">
-    <div class="card-title">All Users</div>
+  <div style="padding:20px 24px 12px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+    <div class="card-title" style="margin-bottom:0;">All Users</div>
+    <input type="text" id="userSearch" placeholder="Search users..."
+           style="width:220px;" onkeyup="filterTable('userSearch', 'user-row')">
   </div>
   <table class="data-table">
     <thead>
@@ -52,7 +54,7 @@
     </thead>
     <tbody>
       {% for u in users %}
-      <tr>
+      <tr class="user-row">
         <td><strong>{{ u.username }}</strong></td>
         <td style="color:var(--text-secondary);">{{ u.email }}</td>
         <td>
@@ -97,7 +99,7 @@
     </thead>
     <tbody>
       {% for t in trips %}
-      <tr>
+      <tr class="trip-row">
         <td style="color:var(--orange);">{{ t.rider.username }}</td>
         <td><strong>{{ t.title }}</strong></td>
         <td style="color:var(--text-secondary);">{{ t.origin }} → {{ t.destination }}</td>
@@ -159,4 +161,14 @@
   <div class="empty-state"><p>No expenses recorded yet.</p></div>
   {% endif %}
 </div>
+
+<script>
+function filterTable(inputId, rowClass) {
+  const query = document.getElementById(inputId).value.toLowerCase();
+  const rows  = document.querySelectorAll('.' + rowClass);
+  rows.forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(query) ? '' : 'none';
+  });
+}
+</script>
 {% endblock %}
