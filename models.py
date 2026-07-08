@@ -17,6 +17,16 @@ class User(db.Model, UserMixin):
     def is_admin(self):
         return self.role == 'admin'
 
+    def to_dict(self):
+        return {
+            'id':         self.id,
+            'username':   self.username,
+            'email':      self.email,
+            'role':       self.role,
+            'bike_model': self.bike_model,
+            'created_at': str(self.created_at)
+        }
+
     trips        = db.relationship('Trip',        backref='rider', lazy='joined', cascade='all, delete-orphan')
     maintenances = db.relationship('Maintenance', backref='rider', lazy='joined', cascade='all, delete-orphan')
     expenses     = db.relationship('Expense',     backref='rider', lazy='joined', cascade='all, delete-orphan')
@@ -36,6 +46,18 @@ class Trip(db.Model):
     created_at  = db.Column(db.DateTime,    default=datetime.utcnow)
     expenses    = db.relationship('Expense', backref='trip', lazy=True, cascade='all, delete-orphan')
 
+    def to_dict(self):
+        return {
+            'id':          self.id,
+            'title':       self.title,
+            'origin':      self.origin,
+            'destination': self.destination,
+            'start_date':  str(self.start_date),
+            'status':      self.status,
+            'distance_km': self.distance_km,
+            'notes':       self.notes
+        }
+
 class Maintenance(db.Model):
     __tablename__ = 'maintenance'
     id           = db.Column(db.Integer,     primary_key=True)
@@ -49,6 +71,18 @@ class Maintenance(db.Model):
     notes        = db.Column(db.Text,        nullable=True)
     created_at   = db.Column(db.DateTime,    default=datetime.utcnow)
 
+    def to_dict(self):
+        return {
+            'id':           self.id,
+            'service_type': self.service_type,
+            'odometer_km':  self.odometer_km,
+            'service_date': str(self.service_date),
+            'next_due_km':  self.next_due_km,
+            'cost':         self.cost,
+            'workshop':     self.workshop,
+            'notes':        self.notes
+        }
+
 class Expense(db.Model):
     __tablename__ = 'expenses'
     id           = db.Column(db.Integer,     primary_key=True)
@@ -60,3 +94,13 @@ class Expense(db.Model):
     description  = db.Column(db.String(255), nullable=True)
     expense_date = db.Column(db.Date,        nullable=False, default=datetime.utcnow)
     created_at   = db.Column(db.DateTime,    default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id':           self.id,
+            'category':     self.category,
+            'amount':       self.amount,
+            'currency':     self.currency,
+            'description':  self.description,
+            'expense_date': str(self.expense_date)
+        }
