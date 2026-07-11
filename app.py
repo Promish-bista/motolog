@@ -207,7 +207,10 @@ def maintenance():
 @app.route('/maintenance/new', methods=['POST'])
 @login_required
 def new_maintenance():
-    MaintenanceController.create_log(current_user.id, request.form)
+    log, error = MaintenanceController.create_log(current_user.id, request.form)
+    if error:
+        flash(error, 'danger')
+        return redirect(url_for('maintenance'))
     flash('Service log saved.', 'success')
     return redirect(url_for('maintenance'))
 
