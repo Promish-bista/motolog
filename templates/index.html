@@ -43,6 +43,24 @@
 </div>
 </div>
 
+<!-- ── Getting Started ── -->
+{% if not trips and not maintenance and not expenses %}
+<div class="card" style="margin-bottom:20px; border-left:3px solid var(--orange); background:var(--orange-subtle);">
+  <div style="display:flex; align-items:flex-start; gap:16px;">
+    <div style="font-size:2rem;">🏍</div>
+    <div>
+      <div style="font-weight:700; font-size:1.05rem; margin-bottom:6px;">Welcome to MotoLog, {{ current_user.username }}!</div>
+      <div style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:12px;">Get started by logging your first ride, service, or expense.</div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <a href="{{ url_for('new_trip') }}" class="btn btn-primary btn-sm">+ Log a Trip</a>
+        <a href="{{ url_for('maintenance') }}" class="btn btn-ghost btn-sm">+ Add Service</a>
+        <a href="{{ url_for('expenses') }}" class="btn btn-ghost btn-sm">+ Record Expense</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
 <!-- ── Maintenance Reminder ── -->
 {% if maintenance %}
   {% set last = maintenance[0] %}
