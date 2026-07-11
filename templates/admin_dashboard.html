@@ -137,6 +137,7 @@
         <th>Odometer</th>
         <th>Next Due</th>
         <th>Cost (NPR)</th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
@@ -150,6 +151,12 @@
           {{ log.next_due_km|int ~ ' km' if log.next_due_km else '—' }}
         </td>
         <td style="color:var(--text-secondary);">{{ log.cost|int if log.cost else '—' }}</td>
+        <td>
+          <form method="POST" action="{{ url_for('admin_delete_maintenance', log_id=log.id) }}"
+                onsubmit="return confirm('Delete this log?')" style="display:inline;">
+            <button type="submit" class="btn btn-danger-ghost btn-sm">Delete</button>
+          </form>
+        </td>
       </tr>
       {% endfor %}
     </tbody>

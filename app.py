@@ -164,6 +164,14 @@ def admin_delete_expense(expense_id):
     flash('Expense deleted.', 'info')
     return redirect(url_for('admin_dashboard'))
 
+@app.route('/admin/delete_maintenance/<int:log_id>', methods=['POST'])
+@login_required
+@role_required('admin')
+def admin_delete_maintenance(log_id):
+    MaintenanceController.delete_log(log_id)
+    flash('Maintenance log deleted.', 'info')
+    return redirect(url_for('admin_dashboard'))
+
 # Trip Routes 
 @app.route('/trips')
 @login_required
