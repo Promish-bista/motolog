@@ -17,7 +17,9 @@
         <a href="{{ url_for('admin_dashboard') }}" {% if request.endpoint == 'admin_dashboard' %}class="active"{% endif %}>Admin Panel</a>
       {% else %}
         <a href="{{ url_for('dashboard') }}"   {% if request.endpoint == 'dashboard'   %}class="active"{% endif %}>Dashboard</a>
-        <a href="{{ url_for('trips') }}"       {% if request.endpoint == 'trips'       %}class="active"{% endif %}>Trips</a>
+        <a href="{{ url_for('trips') }}" {% if request.endpoint == 'trips' %}class="active"{% endif %}>
+          Trips
+        </a>
         <a href="{{ url_for('maintenance') }}" {% if request.endpoint == 'maintenance' %}class="active"{% endif %}>Service</a>
         <a href="{{ url_for('expenses') }}"    {% if request.endpoint == 'expenses'    %}class="active"{% endif %}>Expenses</a>
         <a href="{{ url_for('profile') }}"     {% if request.endpoint == 'profile'     %}class="active"{% endif %}>Profile</a>
@@ -44,6 +46,15 @@
 
     {% block content %}{% endblock %}
   </main>
+{% if current_user.is_authenticated %}
+  <footer style="background:var(--bg-surface); border-top:1px solid var(--border); padding:16px 24px; margin-top:40px;">
+    <div class="container" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+      <span style="font-family:var(--font-display); font-weight:700; font-size:1rem;">Moto<span style="color:var(--orange);">Log</span></span>
+      <span style="color:var(--text-muted); font-size:0.8rem;">ST5041CMD — The Internet and Web Technologies · Softwarica College</span>
+      <span style="color:var(--text-muted); font-size:0.8rem;">© 2026</span>
+    </div>
+  </footer>
+  {% endif %}
 
   <script src="{{ url_for('static', filename='js/calculations.js') }}"></script>
 </body>
