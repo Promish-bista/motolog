@@ -13,18 +13,37 @@ class ExpenseController:
 
     @staticmethod
     def create_expense(user_id, form):
+        category     = form.get('category', '').strip()
+        amount       = form.get('amount', '').strip()
+        expense_date = form.get('expense_date', '').strip()
+
+        if not category or not amount or not expense_date:
+            return None, 'Please fill in all required fields.'
+
+        try:
+            amount = float(amount)
+            if amount <= 0:
+                return None, 'Amount must be greater than zero.'
+        except ValueError:
+            return None, 'Invalid amount value.'
+
+        try:
+            expense_date = datetime.strptime(expense_date, '%Y-%m-%d').date()
+        except ValueError:
+            return None, 'Invalid date format.'
+
         expense = Expense(
             user_id=user_id,
             trip_id=int(form.get('trip_id')) if form.get('trip_id') else None,
-            category=form.get('category'),
-            amount=float(form.get('amount')),
+            category=category,
+            amount=amount,
             currency=form.get('currency', 'NPR'),
-            description=form.get('description', ''),
-            expense_date=datetime.strptime(form.get('expense_date'), '%Y-%m-%d').date()
+            description=form.get('description', '').strip(),
+            expense_date=expense_date
         )
         db.session.add(expense)
         db.session.commit()
-        return expense
+        return expense, None
 
     @staticmethod
     def delete_expense(expense_id):

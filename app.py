@@ -228,7 +228,10 @@ def expenses():
 @app.route('/expenses/new', methods=['POST'])
 @login_required
 def new_expense():
-    ExpenseController.create_expense(current_user.id, request.form)
+    expense, error = ExpenseController.create_expense(current_user.id, request.form)
+    if error:
+        flash(error, 'danger')
+        return redirect(url_for('expenses'))
     flash('Expense recorded.', 'success')
     return redirect(url_for('expenses'))
 
