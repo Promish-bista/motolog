@@ -86,8 +86,11 @@ def dashboard():
     maintenance = MaintenanceController.get_user_logs(current_user.id)[:5]
     expenses    = ExpenseController.get_user_expenses(current_user.id)[:5]
     total_spend = ExpenseController.get_total_spend(current_user.id)
+    all_trips   = TripController.get_user_trips(current_user.id)
+    total_distance = sum(t.distance_km for t in all_trips if t.distance_km) 
     return render_template('index.html', trips=trips, maintenance=maintenance,
-                           expenses=expenses, total_spend=total_spend)
+                           expenses=expenses, total_spend=total_spend,
+                           total_distance=total_distance)
 
 # Profile Route 
 @app.route('/profile', methods=['GET', 'POST'])
