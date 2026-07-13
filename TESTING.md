@@ -94,3 +94,20 @@
 | TC30 | Budget Alert JS | 1. Set limit below current spend | Warning alert shown | Alert appears in red |  Pass |
 | TC31 | Pre-ride Checklist | 1. Click checklist items | Items toggle done state | Progress bar updates |  Pass |
 | TC32 | 404 Page | 1. Go to /randompage | Custom 404 page shown | MotoLog 404 page loads |  Pass |
+
+## 9. New Feature Tests (Added in v1.3+)
+
+| Test ID | Feature | Steps | Expected Result | Actual Result | Status |
+|---------|---------|-------|-----------------|---------------|--------|
+| TC33 | Getting Started Card | 1. Register new account 2. Go to dashboard | Welcome card shown with quick links | Card visible for new users |  Pass |
+| TC34 | Total Distance Stat | 1. Add trips with distance 2. View dashboard | Total km shown in stat card | Distance calculated correctly |  Pass |
+| TC35 | Completed Trips Stat | 1. Mark trip as completed 2. View dashboard | Completed count updates | Count reflects correctly |  Pass |
+| TC36 | Maintenance Validation | 1. Submit empty maintenance form | Error message shown | Flash error appears |  Pass |
+| TC37 | Negative Odometer | 1. Enter negative odometer value | Validation error shown | Error: cannot be negative |  Pass |
+| TC38 | Next Due Less Than Odometer | 1. Enter next due km less than odometer | Validation error shown | Error: must be greater |  Pass |
+| TC39 | Expense Validation | 1. Submit empty expense form | Error message shown | Flash error appears |  Pass |
+| TC40 | Zero Amount Expense | 1. Enter 0 as expense amount | Validation error shown | Error: must be greater than zero |  Pass |
+| TC41 | Admin Delete Maintenance | 1. Login as admin 2. Delete a service log | Log removed from table | Deleted successfully |  Pass |
+| TC42 | Footer Visible | 1. Login and view any page | Footer shows module info | Footer renders correctly |  Pass |
+| TC43 | Inline Status Update | 1. Change trip status dropdown | Status updates immediately | Database updated on change |  Pass |
+| TC44 | Admin Search Users | 1. Login as admin 2. Type in user search | Users filtered in real time | Table filters correctly |  Pass |
