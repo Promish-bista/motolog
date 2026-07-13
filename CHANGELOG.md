@@ -42,3 +42,20 @@ Budget monitor with alerts
 Pre-ride safety checklist
 Responsive mobile navigation
 Git version control setup
+
+## [v1.4.0] - 2026-07-10
+### Added
+- Getting started welcome card for new riders on dashboard
+- Total distance stat card on rider dashboard
+- Completed trips counter stat card
+- Admin delete functionality for maintenance logs
+- Input validation for maintenance controller
+- Footer with module information on all pages
+- Inline trip status quick-update dropdown
+- Admin search for users and trips
+- Password change on profile page
+- Expense category breakdown on dashboard
+
+### Fixed
+- Profile page button sizes
+- Removed pycache from version control
