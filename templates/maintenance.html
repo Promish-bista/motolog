@@ -21,6 +21,7 @@
         <th>Next Due</th>
         <th>Cost (NPR)</th>
         <th>Workshop</th>
+        <th>Notes</th>
         <th></th>
       </tr>
     </thead>
@@ -35,6 +36,7 @@
         </td>
         <td style="color:var(--text-secondary);">{{ log.cost|int if log.cost else '—' }}</td>
         <td style="color:var(--text-secondary);">{{ log.workshop or '—' }}</td>
+        <td style="color:var(--text-muted); font-size:0.82rem;">{{ log.notes[:40] ~ '…' if log.notes and log.notes|length > 40 else log.notes or '—' }}</td>
         <td>
           <form method="POST" action="{{ url_for('delete_maintenance', log_id=log.id) }}" style="display:inline"
                 onsubmit="return confirm('Delete this log?')">
