@@ -30,7 +30,12 @@
     <tbody>
       {% for t in trips %}
       <tr class="trip-row">
-        <td><strong>{{ t.title }}</strong></td>
+        <td>
+          <strong>{{ t.title }}</strong>
+          {% if t.notes %}
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">{{ t.notes[:60] }}{% if t.notes|length > 60 %}…{% endif %}</div>
+          {% endif %}
+        </td>
         <td style="color:var(--text-secondary);">{{ t.origin }} → {{ t.destination }}</td>
         <td style="color:var(--text-secondary); white-space:nowrap;">{{ t.start_date.strftime('%d %b %Y') }}</td>
         <td style="color:var(--text-secondary);">{{ t.distance_km|int if t.distance_km else '—' }}</td>
