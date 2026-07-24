@@ -16,6 +16,12 @@ class AuthController:
         if existing_username:
             return None, 'Username already taken.'
 
+        if len(password) < 6:
+            return None, 'Password must be at least 6 characters.'
+
+        if len(password) < 6:
+            return None, 'Password must be at least 6 characters.'
+
         role = 'rider'
         if admin_code and admin_code == os.getenv('ADMIN_SECRET'):
             role = 'admin'
