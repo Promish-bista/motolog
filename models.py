@@ -12,7 +12,7 @@ class User(db.Model, UserMixin):
     password_hash = db.Column(db.String(256), nullable=False)
     bike_model    = db.Column(db.String(120), nullable=True)
     role          = db.Column(db.String(20),  default='rider', nullable=False)
-    created_at    = db.Column(db.DateTime,    default=datetime.utcnow)
+    last_login    = db.Column(db.DateTime,    nullable=True)
 
     def is_admin(self):
         return self.role == 'admin'

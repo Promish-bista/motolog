@@ -63,6 +63,8 @@ def login():
             password=request.form['password']
         )
         if user:
+            user.last_login = datetime.utcnow()
+            db.session.commit()
             login_user(user)
             if user.is_admin():
                 return redirect(url_for('admin_dashboard'))
