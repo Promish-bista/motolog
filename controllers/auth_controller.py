@@ -47,7 +47,7 @@ class AuthController:
 
     @staticmethod
     def get_all_users():
-        return User.query.order_by(User.created_at.desc()).all()
+        return User.query.order_by(User.id.desc()).all()
 
     @staticmethod
     def delete_user(user_id):

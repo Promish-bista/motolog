@@ -65,7 +65,10 @@ class MaintenanceController:
         return log, None
 
     @staticmethod
-    def delete_log(log_id):
-        log = Maintenance.query.get_or_404(log_id)
+    def delete_log(log_id, user_id=None):
+        query = Maintenance.query.filter_by(id=log_id)
+        if user_id is not None:
+            query = query.filter_by(user_id=user_id)
+        log = query.first_or_404()
         db.session.delete(log)
         db.session.commit()

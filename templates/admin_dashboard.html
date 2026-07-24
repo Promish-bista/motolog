@@ -48,7 +48,7 @@
         <th>Email</th>
         <th>Role</th>
         <th>Bike</th>
-        <th>Joined</th>
+        <th>Account</th>
         <th></th>
       </tr>
     </thead>
@@ -63,11 +63,12 @@
           </span>
         </td>
         <td style="color:var(--text-secondary);">{{ u.bike_model or '—' }}</td>
-        <td style="color:var(--text-muted);">{{ u.created_at.strftime('%d %b %Y') }}</td>
+        <td style="color:var(--text-muted);">#{{ u.id }}</td>
         <td>
           {% if u.id != current_user.id %}
           <form method="POST" action="{{ url_for('admin_delete_user', user_id=u.id) }}"
                 onsubmit="return confirm('Delete user {{ u.username }} and all their data?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <button type="submit" class="btn btn-danger-ghost btn-sm">Delete</button>
           </form>
           {% else %}
@@ -108,6 +109,7 @@
         <td>
           <form method="POST" action="{{ url_for('admin_delete_trip', trip_id=t.id) }}"
                 onsubmit="return confirm('Delete this trip?')" style="display:inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <button type="submit" class="btn btn-danger-ghost btn-sm">Delete</button>
           </form>
         </td>
@@ -154,6 +156,7 @@
         <td>
           <form method="POST" action="{{ url_for('admin_delete_maintenance', log_id=log.id) }}"
                 onsubmit="return confirm('Delete this log?')" style="display:inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <button type="submit" class="btn btn-danger-ghost btn-sm">Delete</button>
           </form>
         </td>
@@ -195,6 +198,7 @@
         <td>
           <form method="POST" action="{{ url_for('admin_delete_expense', expense_id=e.id) }}"
                 onsubmit="return confirm('Delete this expense?')" style="display:inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <button type="submit" class="btn btn-danger-ghost btn-sm">Delete</button>
           </form>
         </td>

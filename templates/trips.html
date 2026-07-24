@@ -19,7 +19,7 @@
   <table class="data-table">
     <thead>
       <tr>
-        <<th>Trip</th>
+        <th>Trip</th>
         <th>Route</th>
         <th>Date</th>
         <th>km</th>
@@ -39,9 +39,11 @@
         </td>
         <td style="color:var(--text-secondary);">{{ t.origin }} → {{ t.destination }}</td>
         <td style="color:var(--text-secondary); white-space:nowrap;">{{ t.start_date.strftime('%d %b %Y') }}</td>
+        <td style="color:var(--text-secondary);">{{ t.distance_km|int if t.distance_km is not none else '—' }}</td>
         <td style="color:var(--text-secondary);">{{ t.expenses|sum(attribute='amount')|int if t.expenses else '—' }}</td>
         <td>
           <form method="POST" action="{{ url_for('edit_trip', trip_id=t.id) }}" style="display:inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <input type="hidden" name="title" value="{{ t.title }}">
             <input type="hidden" name="origin" value="{{ t.origin }}">
             <input type="hidden" name="destination" value="{{ t.destination }}">
@@ -59,6 +61,7 @@
           <a href="{{ url_for('edit_trip', trip_id=t.id) }}" class="btn btn-ghost btn-sm">Edit</a>
           <form method="POST" action="{{ url_for('delete_trip', trip_id=t.id) }}" style="display:inline"
                 onsubmit="return confirm('Delete this trip?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <button type="submit" class="btn btn-danger-ghost btn-sm">Delete</button>
           </form>
         </td>

@@ -40,6 +40,7 @@
         <td>
           <form method="POST" action="{{ url_for('delete_maintenance', log_id=log.id) }}" style="display:inline"
                 onsubmit="return confirm('Delete this log?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <button type="submit" class="btn btn-danger-ghost btn-sm">Delete</button>
           </form>
         </td>
@@ -62,6 +63,7 @@
       <button class="modal-close" onclick="closeModal('maintModal')">×</button>
     </div>
     <form method="POST" action="{{ url_for('new_maintenance') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
       <div class="form-grid">
         <div class="form-group full">
           <label for="service_type">Service Type</label>

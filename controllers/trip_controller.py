@@ -62,14 +62,50 @@ class TripController:
     @staticmethod
     def update_trip(trip_id, form):
         trip = Trip.query.get_or_404(trip_id)
-        trip.title       = form.get('title', '').strip()
-        trip.origin      = form.get('origin', '').strip()
-        trip.destination = form.get('destination', '').strip()
-        trip.start_date  = datetime.strptime(form.get('start_date'), '%Y-%m-%d').date()
-        trip.status      = form.get('status', trip.status)
+        title = form.get('title', '').strip()
+        origin = form.get('origin', '').strip()
+        destination = form.get('destination', '').strip()
+        if not title or not origin or not destination:
+            return None, 'Please fill in all required fields.'
+        if len(title) > 150:
+            return None, 'Trip name must be under 150 characters.'
+
+        end_date_value = form.get('end_date')
+        try:
+            start_date = datetime.strptime(form.get('start_date', ''), '%Y-%m-%d').date()
+            end_date = datetime.strptime(end_date_value, '%Y-%m-%d').date() if end_date_value else None
+        except ValueError:
+            return None, 'Invalid date format.'
+        if 'end_date' not in form:
+            end_date = trip.end_date
+        if end_date and end_date < start_date:
+            return None, 'End date cannot be before start date.'
+
+        distance_km = trip.distance_km
+        if 'distance_km' in form and not form.get('distance_km'):
+            distance_km = None
+        elif form.get('distance_km'):
+            try:
+                distance_km = float(form.get('distance_km'))
+            except ValueError:
+                return None, 'Invalid distance value.'
+            if distance_km < 0:
+                return None, 'Distance cannot be negative.'
+
+        status = form.get('status', trip.status)
+        if status not in {'planned', 'active', 'completed'}:
+            return None, 'Invalid trip status.'
+
+        trip.title       = title
+        trip.origin      = origin
+        trip.destination = destination
+        trip.start_date  = start_date
+        trip.end_date    = end_date
+        trip.distance_km = distance_km
+        trip.status      = status
         trip.notes       = form.get('notes', '').strip()
         db.session.commit()
-        return trip
+        return trip, None
 
     @staticmethod
     def delete_trip(trip_id):

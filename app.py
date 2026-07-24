@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, request, flash
+from flask import Flask, render_template, redirect, url_for, request, flash, abort, session
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_bcrypt import Bcrypt
 from models import db, User, Trip, Maintenance, Expense
@@ -10,11 +10,13 @@ from controllers.maintenance_controller import MaintenanceController
 from controllers.expense_controller import ExpenseController
 from utils.decorators import role_required
 import os
+import hmac
+import secrets
 
 load_dotenv()
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY') or secrets.token_hex(32)
 app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{os.getenv('DB_USERNAME')}:{os.getenv('DB_PASSWORD')}@localhost/{os.getenv('DB_NAME')}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -22,6 +24,22 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SESSION_COOKIE_HTTPONLY']  = True   # prevent JS access to session cookie
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # CSRF protection
 app.config['PERMANENT_SESSION_LIFETIME'] = 1800  # session expires after 30 minutes
+
+@app.context_processor
+def inject_csrf_token():
+    token = session.get('_csrf_token')
+    if not token:
+        token = secrets.token_urlsafe(32)
+        session['_csrf_token'] = token
+    return {'csrf_token': token}
+
+@app.before_request
+def protect_post_requests():
+    if request.method == 'POST':
+        expected = session.get('_csrf_token', '')
+        submitted = request.form.get('csrf_token', '')
+        if not expected or not submitted or not hmac.compare_digest(expected, submitted):
+            abort(400, description='Invalid or missing CSRF token.')
 
 db.init_app(app)
 bcrypt = Bcrypt(app)
@@ -93,15 +111,28 @@ def dashboard():
     completed_trips = sum(1 for t in all_trips if t.status == 'completed') 
     return render_template('index.html', trips=trips, maintenance=maintenance,
                            expenses=expenses, total_spend=total_spend,
-                           total_distance=total_distance)
+                           total_distance=total_distance,
+                           completed_trips=completed_trips)
 
 # Profile Route 
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
     if request.method == 'POST':
-        current_user.username   = request.form.get('username', current_user.username)
-        current_user.bike_model = request.form.get('bike_model', current_user.bike_model)
+        username = request.form.get('username', '').strip()
+        bike_model = request.form.get('bike_model', '').strip()
+        if not username:
+            flash('Username cannot be empty.', 'danger')
+            return redirect(url_for('profile'))
+        if len(username) > 80 or len(bike_model) > 120:
+            flash('Username or bike model is too long.', 'danger')
+            return redirect(url_for('profile'))
+        existing_user = User.query.filter(User.username == username, User.id != current_user.id).first()
+        if existing_user:
+            flash('Username already taken.', 'danger')
+            return redirect(url_for('profile'))
+        current_user.username = username
+        current_user.bike_model = bike_model or None
 
         new_password     = request.form.get('new_password', '')
         confirm_password = request.form.get('confirm_password', '')
@@ -120,10 +151,6 @@ def profile():
         flash('Profile updated successfully.', 'success')
         return redirect(url_for('profile'))
     return render_template('profile.html')
-    return render_template('index.html', trips=trips, maintenance=maintenance,
-                           expenses=expenses, total_spend=total_spend,
-                           total_distance=total_distance,
-                           completed_trips=completed_trips)
 
 # Admin Routes
 @app.route('/admin')
@@ -201,7 +228,10 @@ def edit_trip(trip_id):
         flash('Access denied.', 'danger')
         return redirect(url_for('trips'))
     if request.method == 'POST':
-        TripController.update_trip(trip_id, request.form)
+        _, error = TripController.update_trip(trip_id, request.form)
+        if error:
+            flash(error, 'danger')
+            return redirect(url_for('edit_trip', trip_id=trip_id))
         flash('Trip updated.', 'success')
         return redirect(url_for('trips'))
     return render_template('trip_detail.html', trip=trip, mode='edit')
@@ -235,7 +265,7 @@ def new_maintenance():
 @app.route('/maintenance/<int:log_id>/delete', methods=['POST'])
 @login_required
 def delete_maintenance(log_id):
-    MaintenanceController.delete_log(log_id)
+    MaintenanceController.delete_log(log_id, current_user.id)
     return redirect(url_for('maintenance'))
 
 # Expense Routes 
@@ -259,7 +289,7 @@ def new_expense():
 @app.route('/expenses/<int:expense_id>/delete', methods=['POST'])
 @login_required
 def delete_expense(expense_id):
-    ExpenseController.delete_expense(expense_id)
+    ExpenseController.delete_expense(expense_id, current_user.id)
     return redirect(url_for('expenses'))
 
 # Error Handlers 
@@ -268,4 +298,4 @@ def page_not_found(e):
     return render_template('404.html'), 404
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=os.getenv('FLASK_DEBUG', '').lower() == 'true')

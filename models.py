@@ -24,7 +24,6 @@ class User(db.Model, UserMixin):
             'email':      self.email,
             'role':       self.role,
             'bike_model': self.bike_model,
-            'created_at': str(self.created_at)
         }
 
     trips        = db.relationship('Trip',        backref='rider', lazy='joined', cascade='all, delete-orphan')

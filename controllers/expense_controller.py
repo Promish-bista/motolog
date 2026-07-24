@@ -1,4 +1,4 @@
-from models import db, Expense
+from models import db, Expense, Trip
 from datetime import datetime
 
 class ExpenseController:
@@ -32,9 +32,18 @@ class ExpenseController:
         except ValueError:
             return None, 'Invalid date format.'
 
+        trip_id = None
+        if form.get('trip_id'):
+            try:
+                trip_id = int(form.get('trip_id'))
+            except (TypeError, ValueError):
+                return None, 'Invalid trip selected.'
+            if not Trip.query.filter_by(id=trip_id, user_id=user_id).first():
+                return None, 'You can only link expenses to your own trips.'
+
         expense = Expense(
             user_id=user_id,
-            trip_id=int(form.get('trip_id')) if form.get('trip_id') else None,
+            trip_id=trip_id,
             category=category,
             amount=amount,
             currency=form.get('currency', 'NPR'),
@@ -46,8 +55,11 @@ class ExpenseController:
         return expense, None
 
     @staticmethod
-    def delete_expense(expense_id):
-        expense = Expense.query.get_or_404(expense_id)
+    def delete_expense(expense_id, user_id=None):
+        query = Expense.query.filter_by(id=expense_id)
+        if user_id is not None:
+            query = query.filter_by(user_id=user_id)
+        expense = query.first_or_404()
         db.session.delete(expense)
         db.session.commit()
 
