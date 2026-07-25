@@ -2,7 +2,26 @@
 
 All notable changes to this project are documented here.
 
+## [v1.5.0] - 2026-07-11
+### Added
+Password strength indicator on registration page
+Trip duration days column on trips list
+Trip expense total column on trips list
+Trip notes preview on trips list
+Last login tracking on user model and profile page
+Getting started welcome card for new riders
+Total distance and completed trips stat cards
+Admin delete for maintenance logs
+Maintenance logs stat card on admin dashboard
+Footer with module info on all pages
+Meta tags for description, author and theme color
+Notes column on maintenance log table
 
+### Improved
+Input validation on maintenance and expense controllers
+Profile page button sizing
+Admin dashboard search for users and trips
+TESTING.md updated with TC33-TC44
 
 ## [v1.3.0] - 2026-07-08
 ### Added
