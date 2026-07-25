@@ -44,7 +44,14 @@
 
       <div class="form-group" style="margin-bottom:14px;">
         <label for="password">Password</label>
-        <input type="password" id="password" name="password" required placeholder="••••••••">
+        <input type="password" id="password" name="password" required placeholder="••••••••"
+               {% if mode == 'register' %}oninput="checkStrength(this.value)"{% endif %}>
+        {% if mode == 'register' %}
+        <div id="strengthBar" style="height:3px; border-radius:2px; background:var(--border); margin-top:6px; overflow:hidden;">
+          <div id="strengthFill" style="height:100%; width:0%; transition:width 0.3s, background 0.3s;"></div>
+        </div>
+        <div id="strengthLabel" style="font-size:0.72rem; color:var(--text-muted); margin-top:3px;"></div>
+        {% endif %}
       </div>
 
       {% if mode == 'register' %}
@@ -66,4 +73,31 @@
   </div>
 
 </div>
+{% if mode == 'register' %}
+<script>
+function checkStrength(val) {
+  const fill  = document.getElementById('strengthFill');
+  const label = document.getElementById('strengthLabel');
+  let score = 0;
+  if (val.length >= 6)  score++;
+  if (val.length >= 10) score++;
+  if (/[A-Z]/.test(val)) score++;
+  if (/[0-9]/.test(val)) score++;
+  if (/[^A-Za-z0-9]/.test(val)) score++;
+  const levels = [
+    { pct: '0%',   color: 'var(--border)',   text: '' },
+    { pct: '25%',  color: 'var(--danger)',   text: 'Weak' },
+    { pct: '50%',  color: 'var(--warning)',  text: 'Fair' },
+    { pct: '75%',  color: 'var(--info)',     text: 'Good' },
+    { pct: '90%',  color: 'var(--success)',  text: 'Strong' },
+    { pct: '100%', color: 'var(--success)',  text: 'Very Strong' },
+  ];
+  const l = levels[score] || levels[0];
+  fill.style.width      = l.pct;
+  fill.style.background = l.color;
+  label.textContent     = l.text;
+  label.style.color     = l.color;
+}
+</script>
+{% endif %}
 {% endblock %}
