@@ -22,6 +22,7 @@
         <th>Trip</th>
         <th>Route</th>
         <th>Date</th>
+        <th>Days</th>
         <th>km</th>
         <th>Cost (NPR)</th>
         <th>Status</th>
@@ -39,6 +40,13 @@
         </td>
         <td style="color:var(--text-secondary);">{{ t.origin }} → {{ t.destination }}</td>
         <td style="color:var(--text-secondary); white-space:nowrap;">{{ t.start_date.strftime('%d %b %Y') }}</td>
+        <td style="color:var(--text-secondary);">
+          {% if t.end_date %}
+            {{ (t.end_date - t.start_date).days + 1 }}
+          {% else %}
+            —
+          {% endif %}
+        </td>
         <td style="color:var(--text-secondary);">{{ t.distance_km|int if t.distance_km is not none else '—' }}</td>
         <td style="color:var(--text-secondary);">{{ t.expenses|sum(attribute='amount')|int if t.expenses else '—' }}</td>
         <td>
